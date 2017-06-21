@@ -5,12 +5,12 @@
 * `dat`: Data
 * `fil`: File
     * `key`: File Key
+    * `bin`: File Binary
     * `inf`: File Info
         * `siz`: File Size
         * `tolSiz`: Total File Size
         * `par`: Current Part
         * `tol`: Total Parts
-    * `bin`: File Binary
 * `suc`: Success Data
 * `cod`: Code
 * `err`: Error Data
