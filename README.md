@@ -17,7 +17,9 @@
 
 # Dat
 
-**`POST`** `https://xpc.example.com/v1/call`
+**`POST`** `ws://xpc.example.com/v1/notif`
+**`POST`** `ws://xpc.example.com/v1/file`
+**`POST`** `ws://xpc.example.com/v1/action`
 
 ```js
 {
