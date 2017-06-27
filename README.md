@@ -96,7 +96,7 @@ maxim.connect()    // 重新連線
 
 ### 建立請求
 
-以 Maxim 在 JavaScript 向遠端 Golang 伺服器建立一個請求時需透過一連串的函式鍊。此函式會回傳 Promise，這令你能夠與 ASync/Await 一同搭配。
+以 Maxim 在 JavaScript 向遠端 Golang 伺服器建立一個請求時需透過一連串的函式鍊。此函式會回傳 Promise，這令你能夠與 Async/Await 一同搭配。
 
 ```js
 var m = {session: "AJjMC39xO1cpELfbGC8H4Os21G"}
@@ -109,11 +109,11 @@ resp = await maxim.meta(m).execute("CreateVideo", d)
 
 #### 檔案上傳
 
-如果要上傳的是檔案，傳入一個 `FileReader` 至 `file()` 函式中。
+如果要上傳的是檔案，傳入一個 `FileReader` 至 `execute()` 函式中。
 
 ```js
 reader = new FileReader()
-maxim.file(reader).send()
+maxim.execute("UploadPhoto", reader)
 ```
 
 ### 全域配置
@@ -122,15 +122,15 @@ Maxim 提供了 `setup()` 函式可進行全域設置，以省去每次發送時
 
 ```js
 maxim.setup({
-    // 每次 `send()` 執行時所會自動夾帶的中繼資料。
+    // 每次 `execute()` 執行時所會自動夾帶的中繼資料。
     meta: {
     },
-    // 每次 `send()` 執行之前所會呼叫的函式，當此函式回傳的是 `false` 則停止繼續。
-    beforeSend: () => {
+    // 每次 `execute()` 執行之前所會呼叫的函式，當此函式回傳的是 `false` 則停止繼續。
+    beforeExecute: () => {
         return true
     },
-    // 每次 `send()` 執行完畢之後所會呼叫的函式。
-    afterSend: () => {
+    // 每次 `execute()` 執行完畢之後所會呼叫的函式。
+    afterExecute: () => {
     }
 })
 ```
