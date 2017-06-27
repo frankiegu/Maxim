@@ -1,6 +1,7 @@
 # Alias
 
 * `act`: Action
+* `col`: Columns
 * `met`: Metadata
 * `dat`: Data
 * `fil`: File
@@ -24,6 +25,7 @@
 ```js
 {
     act: "UploadVideo"
+    col: "title, uploader(username, nickname)"
     met: {
         session: "AJjMC39xO1cpELfbGC8H4Os21G"
     },
