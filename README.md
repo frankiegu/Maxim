@@ -2,6 +2,49 @@
 
 Maxim 是一套前端與後端以 JSON 作為基礎並透過 MessagePack 壓縮且經由 WebSocket 的通訊方式，用以取代傳統的 REST。
 
+## 使用範例
+
+JavaScript
+
+```js
+import maxim from "maxim"
+
+conn = maxim.open("wss://www.example.com/")
+resp = await conn.execute("SayHello", {
+    hello: "world!"
+})
+data = await resp.data()
+// 輸出：bar!
+console.log(data.foo)
+```
+
+Golang
+
+```go
+package main
+
+import (
+	"github.com/TeaMeow/Maxim"
+)
+
+func main() {
+    m := maxim.New()
+    m.Function("SayHello", func(c *maxim.Context) {
+        var data map[string]string
+        if c.Bind(&data) == nil {
+            // 輸出：world!
+            fmt.Println(data["hello"])
+            // 將訊息傳遞回去給使用者。
+            c.Send(maxim.H{
+                "foo": "bar!"
+            })
+        }
+    })
+    m.Run()
+}
+
+```
+
 ## 內容結構
 
 透過 WebSocket，傳遞一個最基本的 Maxim 請求格式如下。
@@ -39,11 +82,10 @@ Maxim 目前僅支援 Golang 與前端 JavaScript 進行連動，這意味著後
 
 ```js
 import maxim from "maxim"
+
 maxim.open("ws://www.example.com/")
-// 斷開連線
-maxim.disconnect()
-// 重新連線
-maxim.connect()
+maxim.disconnect() // 斷開連線
+maxim.connect()    // 重新連線
 ```
 
 ### 建立請求
@@ -96,11 +138,25 @@ import "github.com/TeaMeow/Maxim"
 
 // 定義相對應的函式。
 maxim.Function("GetUser", func (c *Maxim.Context) {
+    c.Data(OK, Maxim.H{
+        "Users": "Wow"
+    }).Send()
+})
+maxim.Run(":8080")
+```
+
+```go
+maxim.Function("GetUser", func (c *Maxim.Context) {
+    c.Data(OK, Maxim.H{
+        "Users": "Wow"
+    }).Send()
 })
 ```
 
 ###
 
 ```go
+maxim.File(func (c *Maxim.Context) {
 
+})
 ```
