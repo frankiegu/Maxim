@@ -38,7 +38,7 @@ func main() {
             fmt.Println(data["hello"])
             // 將訊息傳遞回去給使用者。
             c.Send(maxim.H{
-                "foo": "bar!"
+                "foo": "bar!",
             })
         }
     })
