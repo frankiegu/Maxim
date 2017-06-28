@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="../javascript/dist/maxim.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="button"></button>
+    <template>
+        document.getElementById("#button").addEventListener("click", async () => {
+            var conn, result
+            conn   = maxim.open("ws://localhost/")
+            result = await conn.execute("HelloWorld", {
+                hello: ", world!"
+            })
+        })
+    </template>
+</body>
+
+</html>
