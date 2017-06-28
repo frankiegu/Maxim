@@ -16,6 +16,7 @@ class Maxim
             onError:       ->
             onMessage:     ->
             meta: {}
+            chunkSize: 2000000
 
     # _messageHandler 負責處理接收到的任何訊息，並且 resolve 相對應的 Promise。
     _messageHandler: (event) ->
@@ -80,5 +81,5 @@ class Maxim
         @_clean()
         # 增加工作編號。
         @tid++
-        
+
         return promise

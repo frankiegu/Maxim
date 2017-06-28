@@ -31,7 +31,7 @@ import (
 
 func main() {
     m := maxim.New()
-    m.Function("SayHello", func(c *maxim.Context) {
+    m.NewHandler("SayHello", func(c *maxim.Context) {
         var data map[string]string
         if c.Bind(&data) == nil {
             // 輸出：world!
@@ -42,9 +42,8 @@ func main() {
             })
         }
     })
-    m.Run()
+    m.Run(":5000")
 }
-
 ```
 
 ## 內容結構
@@ -110,11 +109,12 @@ resp = await maxim.meta(m).execute("CreateVideo", d)
 
 #### 檔案上傳
 
-如果要上傳的是檔案，傳入一個 `FileReader` 至 `execute()` 函式中。
+如果要上傳的是檔案，傳入一個 `FileReader` 至 `upload()` 函式中。
 
 ```js
 reader = new FileReader()
-maxim.execute("UploadPhoto", reader)
+reader.readAsByteArray(file)
+maxim.upload(reader)
 ```
 
 ### 全域配置
@@ -141,29 +141,9 @@ maxim.setup({
 Maxim 已有後端套件供 Golang 使用。
 
 ```go
-import "github.com/TeaMeow/Maxim"
-
-// 定義相對應的函式。
-maxim.Function("GetUser", func (c *Maxim.Context) {
-    c.Data(OK, Maxim.H{
-        "Users": "Wow"
-    }).Send()
+engine := maxim.Default()
+engine.NewHandler("CreateUser", func(c *maxim.Context) {
+    // ...
 })
-maxim.Run(":8080")
-```
-
-```go
-maxim.Function("GetUser", func (c *Maxim.Context) {
-    c.Data(OK, Maxim.H{
-        "Users": "Wow"
-    }).Send()
-})
-```
-
-###
-
-```go
-maxim.File(func (c *Maxim.Context) {
-
-})
+engine.Run(":5000")
 ```
