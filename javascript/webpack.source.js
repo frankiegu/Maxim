@@ -1,7 +1,7 @@
 const path = require('path')
 
 module.exports = {
-    entry: './src/maxim.js',
+    entry: './src/maxim.coffee',
     output: {
         path: __dirname + '/dist',
         filename: 'maxim.js',
