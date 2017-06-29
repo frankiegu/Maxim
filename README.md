@@ -29,6 +29,8 @@ e.On("GetUser", func(c *maxim.Context) {
 })
 ```
 
+### 綁定模型
+
 ```go
 e.On("GetSession", func(c *maxim.Context) {
     var form LoginForm
@@ -46,6 +48,8 @@ e.On("GetSession", func(c *maxim.Context) {
 })
 ```
 
+### 回應模型
+
 ```go
 e.On("GetBook", func(c *maxim.Context) {
     var book struct {
@@ -56,6 +60,16 @@ e.On("GetBook", func(c *maxim.Context) {
     book.Description = "這本書將帶領你理解為什麼 PHP 能夠領先任何程式語言十多年。"
     // 輸出：{"t": "世界上最...", "d": "這本書將帶領你理..."}
     c.Respond(maxim.StatusOK, book)
+})
+```
+
+### 回應其他人
+
+```go
+e.On("CreateMessage", func(c *maxim.Context) {
+    c.RespondOthers(maxim.StatusOK, maxim.H{
+        "message": "Pong!",
+    })
 })
 ```
 
@@ -75,3 +89,19 @@ e.On("CreateUser", myMiddleware, anotherMiddleware, func(c *maxim.Context) {
 })
 ```
 
+## 主動式回應
+
+```go
+func main() {
+    e := maxim.Default()
+    go func() {
+        for {
+            <- time.After(1 * time.Second)
+            e.Respond(maxim.StatusOK, maxim.H{
+                "time": time.Now(),
+            })
+        }
+    }()
+    e.Run(":5000")
+}
+```
