@@ -159,6 +159,8 @@ e.On("CreateUser", myMiddleware, anotherMiddleware, func(c *maxim.Context) {
 
 ### 基本用法
 
+Maxim 除了支援 Golang 後端以外，亦有 JavaScript 的前端套件，引用 Maxim 並以 `new Maxim()` 建立一個 Maxim 客戶端。
+
 ```go
 import maxim from "maxim"
 
@@ -170,15 +172,23 @@ var result = await conn.execute("CreateUser", {
 result.data().userID
 ```
 
+我們建議你可以自行建立函式，並將 Maxim 的呼叫函式包裹起來，這能夠讓你在呼叫遠端函式時，就像是在直接呼叫本地函式一樣地直覺。
+
 ```go
+// 包裹 Maxim 的遠端呼叫函式。
 function CreateUser(data) {
     return conn.execute("CreateUser", data)
 }
+// 用超直覺的方式直接呼叫 `CreateUser` 方法！
 result = await CreateUser({
     username: "YamiOdymel",
     birthday: "1998-07-13"
 })
 ```
+
+### 上傳檔案
+
+透過 Maxim 的 JavaScript 客戶端裡名為 `upload` 的函式能讓你透過 WebSocket 自動分塊並上傳檔案，使用方法是傳入一個函式，並且該傳入函式需要回傳一個位元組陣列，透過 HTML5 的 FileReader 這點來說變得十分容易，也能夠讓 Maxim 輕鬆地將檔案進行分塊處理，也使你能夠更加彈性地處理 FileReader 程序。
 
 ```go
 result = await conn.upload("Avatar", () => {
@@ -187,8 +197,12 @@ result = await conn.upload("Avatar", () => {
 })
 ```
 
+### 監聽
+
+透過 `on` 函式可以新增多個監聽器，監聽器會在每當有新訊息時被呼叫。
+
 ```go
-conn.on((e) => {
+conn.addListener((e) => {
     console.log("已接收到資訊。")
 })
 ```
