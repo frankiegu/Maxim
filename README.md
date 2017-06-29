@@ -28,6 +28,8 @@ result.data().pong // Hello, world!
 
 ## 基本內容
 
+透過 `On` 建立一個事件監聽器，這會用以監聽客戶端傳送的事件是否正在呼叫相對應的函式，接著透過 `Respond` 並傳遞資料即可回應該呼叫。
+
 ```go
 e.On("GetUser", func(c *maxim.Context) {
     c.Respond(maxim.StatusOK, maxim.H{
