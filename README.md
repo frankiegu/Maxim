@@ -1,6 +1,6 @@
 # Maxim
 
-Maxim 是一個基於 Golang
+Maxim 是一個基於 Golang 與 JavaScript 的前後端溝通框架，溝通方式基於 JSON 並以 MessagePack 壓縮且透過 WebSocket 相互傳遞。亦支援處理檔案上傳（並透過分塊處理）。
 
 ```go
 package main
@@ -9,13 +9,21 @@ import "github.com/TeaMeow/Maxim"
 
 func main() {
     e := maxim.Default()
-    e.On("CreateUser", func(c *maxim.Context) {
+    e.On("Ping", func(c *maxim.Context) {
         c.Respond(maxim.StatusOK, maxim.H{
-            "hello": "world",
+            "pong": "Hello, world!",
         })
     })
     e.Run(":5000")
 }
+```
+
+```js
+import maxim from "maxim"
+
+conn   = new Maxim("ws://localhost:5000/")
+result = await conn.execute("Ping")
+result.data().pong // Hello, world!
 ```
 
 ## 基本內容
@@ -30,6 +38,8 @@ e.On("GetUser", func(c *maxim.Context) {
 ```
 
 ### 綁定模型
+
+當 Maxim 服務接收到來自客戶端的資料時，可以將其資料直接映射在本地端的特定建構體或 `map`。
 
 ```go
 e.On("GetSession", func(c *maxim.Context) {
@@ -50,6 +60,8 @@ e.On("GetSession", func(c *maxim.Context) {
 
 ### 回應模型
 
+回應可以是一個 `map` 或者是建構體，你亦能在建構體中透過標籤指定回傳的鍵名。
+
 ```go
 e.On("GetBook", func(c *maxim.Context) {
     var book struct {
@@ -65,6 +77,8 @@ e.On("GetBook", func(c *maxim.Context) {
 
 ### 回應其他人
 
+自從 Maxim 是基於 WebSocket，這意味著其他人也在線上，所以你可以指定將訊息傳遞給所有人，除了請求者之外。請注意，當使用了負載平衡，這可能無法完整地傳遞給所有人（因為大家被分配在不同伺服器中）。
+
 ```go
 e.On("CreateMessage", func(c *maxim.Context) {
     c.RespondOthers(maxim.StatusOK, maxim.H{
@@ -74,6 +88,8 @@ e.On("CreateMessage", func(c *maxim.Context) {
 ```
 
 ### 主動式回應
+
+直接向 Maxim 的引擎呼叫 `Respond` 能夠對所有使用者進行回應，下面這個範例會令你的 Maxim 服務每一秒就向所有使用者廣播時間內容。
 
 ```go
 func main() {
@@ -110,18 +126,23 @@ Maxim 會自動在上傳時將檔案切分成塊（基於客戶端區塊大小�
     v             v
 ```
 
+自從你不需要手動處理區塊分割的問題，你的檔案上傳處理也變得異常簡單。
 
 ```go
-e.OnFile("Avatar", maxim.DefaultChunker, func(c *maxim.Context) {
-
+e.OnFile("Avatar", maxim.Chunker, func(c *maxim.Context) {
+    c.Respond(maxim.StatusOK, maxim.H{
+        "filename": c.File.Name,
+    })
 })
 ```
 
 ## 中間件
 
+和一般傳統的 REST API 網站框架相同，Maxim 也允許你在接收時安插中間件用以紀錄、測量相關內容。
+
 ```go
 e.On("CreateUser", myMiddleware, anotherMiddleware, func(c *maxim.Context) {
-
+    // ...
 })
 ```
 
