@@ -2,6 +2,8 @@
 
 Maxim 是一個基於 Golang 與 JavaScript 的前後端溝通框架，溝通方式基於 JSON 並以 MessagePack 壓縮且透過 WebSocket 相互傳遞。亦支援處理檔案上傳（並透過分塊處理）。
 
+###### Golang
+
 ```go
 package main
 
@@ -18,6 +20,8 @@ func main() {
 }
 ```
 
+###### JavaScript
+
 ```js
 import maxim from "maxim"
 
@@ -26,7 +30,7 @@ result = await conn.execute("Ping")
 result.data().pong // Hello, world!
 ```
 
-## 基本內容
+## 基本用法
 
 透過 `On` 建立一個事件監聽器，這會用以監聽客戶端傳送的事件是否正在呼叫相對應的函式，接著透過 `Respond` 並傳遞資料即可回應該呼叫。
 
