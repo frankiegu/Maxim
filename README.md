@@ -155,3 +155,40 @@ e.On("CreateUser", myMiddleware, anotherMiddleware, func(c *maxim.Context) {
 })
 ```
 
+## 前端
+
+### 基本用法
+
+```go
+import maxim from "maxim"
+
+var conn   = new Maxim("ws://localhost:5000/")
+var result = await conn.execute("CreateUser", {
+    username: "YamiOdymel",
+    birthday: "1998-07-13"
+})
+result.data().userID
+```
+
+```go
+function CreateUser(data) {
+    return conn.execute("CreateUser", data)
+}
+result = await CreateUser({
+    username: "YamiOdymel",
+    birthday: "1998-07-13"
+})
+```
+
+```go
+result = await conn.upload("Avatar", () => {
+    var reader = new FileReader()
+    return reader.readAsByteArray(file)
+})
+```
+
+```go
+conn.on((e) => {
+    console.log("已接收到資訊。")
+})
+```
