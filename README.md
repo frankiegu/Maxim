@@ -115,6 +115,24 @@ func main() {
 }
 ```
 
+### 中繼資料
+
+如果你有任何不是錯誤、主要資料的內容，就能夠放置於中繼資料中進行傳遞，像是驗證 Token 或是連線的版本、速率等。在 Maxim 中已經內建了中繼資料的存放與讀取用法。
+
+```go
+e.On("CreateMessage", func(c *maxim.Context) {
+    // 從本次接收的資料取得中繼資料 `map`。
+    metadata := c.Metadata()
+    // 從中繼資料中取得 `token` 資料。
+    token := metadata["token"]
+
+    // 設置回傳的中繼資料
+    c.SetMetadata(maxim.H{
+        "version": "1.0.0-alpha1",
+    }).Respond(maxim.StatusOK)
+})
+```
+
 ### 檔案接收
 
 在 Maxim 中，上傳檔案和送出資料是分開的，這意味著當你想要上傳帶有圖片的表單時，你需要先上傳圖片，接著取得已上傳圖片的以檔案編號的方式夾帶到另一個表單方可傳遞相關資訊。這在上傳大型檔案如影片時非常有用。
@@ -169,7 +187,8 @@ var result = await conn.execute("CreateUser", {
     username: "YamiOdymel",
     birthday: "1998-07-13"
 })
-result.data().userID
+result.data.userID
+result.metadata.version
 ```
 
 我們建議你可以自行建立函式，並將 Maxim 的呼叫函式包裹起來，這能夠讓你在呼叫遠端函式時，就像是在直接呼叫本地函式一樣地直覺。
@@ -205,4 +224,53 @@ result = await conn.upload("Avatar", () => {
 conn.addListener((e) => {
     console.log("已接收到資訊。")
 })
+```
+
+### 錯誤處理
+
+透過 Maxim 傳遞資料，也能夠傳遞錯誤資訊並且友善地處理它。
+
+```javascript
+var result = await conn.execute("CreateUser", {
+    username: "YamiOdymel",
+    birthday: "1998-07-13"
+})
+result
+```
+
+## 結構
+
+```js
+{
+    tid: int,     本次工作編號。
+    fun: string,  欲呼叫的遠端函式名稱。
+    col: ?string, 欲取得的相關欄位內容。
+    met: ?object, 中繼資料內容。
+    dat: ?object  主要資料內容。
+}
+```
+
+```js
+{
+    tid: int,             本次工作編號。    
+    met: ?object,         中繼資料內容。
+    fil: {                檔案內容。
+        inf: {            檔案資訊。
+            par: integer, 目前上傳區塊順序。
+            tol: integer  檔案總共的區塊數。
+        },
+        key: string,      檔案唯一金鑰。
+        bin: binary       此區塊的檔案二進制內容。
+    }
+}
+```
+
+```js
+{
+    tid: int,     本次工作編號。
+    met: ?object, 中繼資料內容。
+    cod: string,  回傳狀態碼。
+    dat: ?object, 主要資料內容。
+    err: ?object  錯誤主要資料內容，若無此物件則為成功無錯誤。
+}
 ```
