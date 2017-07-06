@@ -252,7 +252,7 @@ result
 
 ```js
 {
-    tid: int,             本次工作編號。    
+    tid: int,             本次工作編號。
     met: ?object,         中繼資料內容。
     fil: {                檔案內容。
         inf: {            檔案資訊。
