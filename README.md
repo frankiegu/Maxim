@@ -24,10 +24,18 @@ func main() {
 
 ```js
 import maxim from "maxim"
+var conn, result, data
 
 conn   = new Maxim("ws://localhost:5000/")
 result = await conn.execute("Ping")
-result.data().pong // Hello, world!
+
+// 如果有錯誤就輸出錯誤資料。
+if(result.error()) {
+    console.log(result.error())
+// 否則就顯示回傳的資料。
+} else {
+    console.log(result.data().pong) // 輸出：Hello, world!
+}
 ```
 
 ## 後端
@@ -187,17 +195,16 @@ var result = await conn.execute("CreateUser", {
     username: "YamiOdymel",
     birthday: "1998-07-13"
 })
-result.data.userID
-result.metadata.version
+result.data().userID
+result.metadata().version
 ```
 
 我們建議你可以自行建立函式，並將 Maxim 的呼叫函式包裹起來，這能夠讓你在呼叫遠端函式時，就像是在直接呼叫本地函式一樣地直覺。
 
 ```go
 // 包裹 Maxim 的遠端呼叫函式。
-function CreateUser(data) {
-    return conn.execute("CreateUser", data)
-}
+CreateUser = (data) => conn.execute("CreateUser", data)
+
 // 用超直覺的方式直接呼叫 `CreateUser` 方法！
 result = await CreateUser({
     username: "YamiOdymel",
@@ -220,8 +227,16 @@ result = await conn.upload("Avatar", () => {
 
 透過 `on` 函式可以新增多個監聽器，監聽器會在每當有新訊息時被呼叫。
 
+| 事件名稱 	| 參數         	| 說明                                 |
+|----------	|--------------	|-------------------------------------|
+| open     	|              	| 當第一次開始連線時。                	|
+| message  	| MessageEvent 	| 當接收到任何訊息時。                	|
+| error    	|              	| 當伺服端或本地端 Maxim 發生錯誤時。      |
+| close    	| CloseEvent   	| 當連線關閉時。                         |
+| reopen   	|              	| 當重新開始連線時。                  	 |
+
 ```go
-conn.addListener((e) => {
+conn.on("message", (e) => {
     console.log("已接收到資訊。")
 })
 ```
@@ -235,7 +250,9 @@ var result = await conn.execute("CreateUser", {
     username: "YamiOdymel",
     birthday: "1998-07-13"
 })
-result
+if(result.error() || result.code != maxim.statusOK) {
+    // ...
+}
 ```
 
 ## 結構
