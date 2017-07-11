@@ -225,7 +225,7 @@ result = await conn.upload("Avatar", () => {
 
 ### 監聽
 
-透過 `on` 函式可以新增多個監聽器，監聽器會在每當有新訊息時被呼叫。
+透過 `addListener` 函式可以新增多個監聽器，監聽器會在每當有新訊息時被呼叫。
 
 | 事件名稱 	| 參數         	| 說明                                 |
 |----------	|--------------	|-------------------------------------|
@@ -236,7 +236,7 @@ result = await conn.upload("Avatar", () => {
 | reopen   	|              	| 當重新開始連線時。                  	 |
 
 ```go
-conn.on("message", (e) => {
+conn.addListener("message", (e) => {
     console.log("已接收到資訊。")
 })
 ```
