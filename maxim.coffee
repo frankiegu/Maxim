@@ -1,10 +1,11 @@
 # MaximData 是接收到的資料函式庫，用以轉換資料供開發者使用。
 class MaximData
-    constructor: (@event) ->
-
-    data: ->
-    error: ->
-    metadata: ->
+    constructor: (@data) ->
+    taskID:   -> @data.tid
+    code:     -> @data.cod
+    data:     -> @data.dat
+    error:    -> @data.err
+    metadata: -> @data.met
 
 # Maxim 是主要的連線函式庫。
 class Maxim
@@ -26,6 +27,8 @@ class Maxim
         _registerListeners()
         @addListener 'message', @_taskCaller
 
+    #
+    columns: (columns) ->
 
     # metadata 會設置單次性的指定中繼資料。
     metadata: (data) ->
@@ -60,13 +63,17 @@ class Maxim
     _taskCaller: (event) ->
         # 將接收到的資料以 MessagePack 解碼。
         data = msgpack.decode(event.data)
-        #
+        # 如果資料中沒有工作編號，則忽略這個資料。
         if data.tid is undefined
             return
-        #
+        # 建立一個 MaximData 並將已解碼的資料傳入。
         maximData = new MaximData(data)
-        # 如果該資料含有工作編號，就呼叫指定的工作 Resolve 函式。
+        # 呼叫指定的工作 Resolve 函式。
         @task[data.tid](maximData) if data.tid isnt undefined
+
+    # upload 會透過 WebSocket 上傳區塊檔案並最終在伺服端組合，這會事先透過本地端 Maxim 以 FileReader 將資料切為區塊。
+    upload: (func) ->
+
 
     # execute 會透過 WebSocket 呼叫遠端函式。
     execute: (func, data) ->
