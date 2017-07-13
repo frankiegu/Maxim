@@ -298,19 +298,25 @@ engine.OnFile("Video", chunker, func(c *maxim.Context) {
 
 ```go
 chunker := maxim.NewChunker(maxim.ChunkerOption{
-	Path: 	    "/tmp",
+	Path:       "/tmp",
 	RandomName: true,
-	MaxSize:	5000000,
+	MaxSize:    5000000,
 })
-engine.OnFile("Video", chunker, func(c *maxim.Context) {
-	// 當上傳完畢後輸出檔案名稱。
-	fmt.Println(c.File.Name)
+engine.OnFile("Photo", chunker, func(c *maxim.Context) {
+	// ...
 })
 ```
 
 Maxim 內建的區塊處理函式有這些設置可供使用。
 
-
+| 屬性        | 資料型態  | 說明                                                             |
+|------------|----------|------------------------------------------------------------------|
+| Path       | string   | 檔案上傳完成後所存放的路徑，留白則不從暫存資料夾中移動。                  |
+| RandomName | bool     | 檔案上傳後是否使用隨機命名而非原本的檔案名稱？                           |
+| Name       | string   | 檔案命名方式，留白則為不使用此方式。                                   |
+| MaxSize    | int      | 可允許的檔案最大大小（位元組）。                                       |
+| Timeout    | int      | 檔案上傳的逾時時間（分鐘，0 為無限，可能導致未使用的區塊殘留）。            |
+| OnError    | func     | 錯誤發生時所會呼叫的函式。                                            |
 
 
 
