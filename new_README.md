@@ -58,6 +58,23 @@ Maxim 會自動在上傳時將檔案切分成塊（基於客戶端區塊大小�
 $ go get github.com/TeaMeow/Maxim
 ```
 
+# 命名方式
+
+在 Maxim 中你可以依照你的喜好替函式命名，但如果你覺得不曉得從何起頭，這裡提供了一個比起傳統 RESTful API 還要更有彈性的命名規範。傳統的 API 中我們有 `GET`、`POST`、`PATCH`⋯等，但多數情況下那並不是很適用，例如你想要替某項東西按讚，變成了 `POST Like` 並不是很直覺。
+
+比起使用 CRUD（Create、Read、Update、Delete），Maxim 更推薦使用 BGUCDS，他們的含義如下。
+
+| 名詞    | 簡稱  | 說明                                     | 範例                       | 傳統範例              |
+|--------|------|------------------------------------------|---------------------------|----------------------|
+| Browse | 瀏覽  | 瀏覽資源的清單，例如影片列表、好友列表。        | BrowseUsers、BrowseVideos | GET /comments        |
+| Get    | 取得  | 取得單個資源。                             | GetComment                | GET /comment/1       |
+| Update | 更新  | 更新、編輯單個或多個資源。                   | UpdatePost                | PUT /post/1          |
+| Create | 建立  | 新增、建立單個或多個資源。                   | CreatePhotos              | POST /photos         |
+| Delete | 刪除  | 移除單個或多個資源。                        | DeleteFriend              | DELETE /friend/1     |
+| Search | 搜尋  | 搜尋資源。                                | SearchPosts               | GET /posts/?count=30 |
+
+如果你覺得這好像蠻難記的，那麼你就可以創造出屬於你自己的命名方式，因為這不是固定的。
+
 # 使用方式
 
 Maxim 的使用方式參考令人容易上手的 [Gin 網站框架](https://github.com/gin-gonic/gin)，令你撰寫 WebSocket 就像在撰寫普通的網站框架ㄧ樣容易。
@@ -285,7 +302,6 @@ engine.OnFile("Video", chunker, func(c *maxim.Context) {
 
 | 屬性      | 資料型態      | 說明                             |
 |-----------|---------------|-------------------------------|
-| Key       | string        | 檔案上傳時的獨立金鑰。            |
 | Name      | string        | 原生檔案名稱。                   |
 | Size      | int           | 檔案大小（位元組）。              |
 | Extension | string        | 副檔名（不含點符號）。            |
@@ -298,9 +314,8 @@ engine.OnFile("Video", chunker, func(c *maxim.Context) {
 
 ```go
 chunker := maxim.NewChunker(maxim.ChunkerOption{
-	Path:       "/tmp",
-	RandomName: true,
-	MaxSize:    5000000,
+	Path:    "/tmp",
+	MaxSize: 5000000,
 })
 engine.OnFile("Photo", chunker, func(c *maxim.Context) {
 	// ...
@@ -312,8 +327,6 @@ Maxim 內建的區塊處理函式有這些設置可供使用。
 | 屬性        | 資料型態  | 說明                                                             |
 |------------|----------|------------------------------------------------------------------|
 | Path       | string   | 檔案上傳完成後所存放的路徑，留白則不從暫存資料夾中移動。                  |
-| RandomName | bool     | 檔案上傳後是否使用隨機命名而非原本的檔案名稱？                           |
-| Name       | string   | 檔案命名方式，留白則為不使用此方式。                                   |
 | MaxSize    | int      | 可允許的檔案最大大小（位元組）。                                       |
 | Timeout    | int      | 檔案上傳的逾時時間（分鐘，0 為無限，可能導致未使用的區塊殘留）。            |
 | OnError    | func     | 錯誤發生時所會呼叫的函式。                                            |
