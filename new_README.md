@@ -1,0 +1,211 @@
+# Maxim [![GoDoc](https://godoc.org/github.com/TeaMeow/Maxim?status.svg)](https://godoc.org/github.com/TeaMeow/Maxim)
+
+用以取代傳統 [RESTful API](https://zh.wikipedia.org/zh-tw/REST) 的前後端雙向溝通協定，基於 [WebSocket](https://developer.mozilla.org/zh-TW/docs/WebSockets/WebSockets_reference/WebSocket) 且由 [MessagePack](http://msgpack.org/) 對資料進行編碼、解碼令傳遞的資料更加輕量。同時支援檔案可暫停式上傳。
+
+# 這是什麼？
+
+馬克沁是一個由 [Golang](https://golang.org/) 所撰寫的前後端雙向溝通方式，這很適合用於聊天室、即時連線、單頁應用程式。目前僅支援前端 JavaScript 與後端 Golang 的溝通（若有時間將會加入其他語言的版本）。
+
+* 可取代傳統 RESTful API。
+* 以 MessagePack 編碼資料與達到更輕量的傳遞。
+* 可雙向溝通與廣播以解決傳統僅單向溝通的障礙。
+* 可供暫停式的全自動檔案分塊上傳方式。
+* 支援中繼軟體（Middleware）。
+* 可使用 ES7 Async/Await 處理前端的呼叫。
+* 友善的錯誤處理環境。
+
+# 為什麼？
+
+在部份時候傳統 RESTful API 確實能派上用場，但久而久之就會為了如何命名、遵循 REST 風格而產生困擾，例如網址必須是名詞而非動詞，登入必須是 `GET /token` 而非 `POST /login`，但使用 `GET` 傳遞機密資料極為不安全，因此只好更改為 `POST /session` 等，陷入如此地窘境。
+
+且多個時候 RESTful API 都是單向，而非雙向。這造成了在即時連線、雙向互動上的溝通困擾，不得不使用 Comet、Long Polling 達到相關的要求，令 API 更加分散難以管理。
+
+Maxim 試圖以 WebSocket 解決雙向溝通和多數重複無用的 HTTP 標頭導致浪費頻寬的問題，Maxim 同時亦支援透過 WebSocket 上傳檔案的功能。
+
+# 單頻道與多頻道廣播？
+
+WebSocket 簡單說就是開一個共享廣播令大家接收到相同的訊息，但這可不能發生在一般網頁溝通上（除非你想把機密資料傳去別人電腦裡），為此 Maxim 的廣播方式如同一般 RESTful API，僅會回傳給指定客戶端（Session），當然你也能夠透過 Maxim 將某個資料廣播給所有客戶端，或者除了某客戶端以外的所有人，這能令你在製作如聊天室廣播時更加得心應手。
+
+# 效能如何？
+
+# 索引
+
+# 安裝方式
+
+打開終端機並且透過 `go get` 安裝此套件即可。
+
+```bash
+$ go get github.com/TeaMeow/Maxim
+```
+
+# 使用方式
+
+Maxim 的使用方式參考令人容易上手的 [Gin 網站框架](https://github.com/gin-gonic/gin)，令你撰寫 WebSocket 就像在撰寫普通的網站框架ㄧ樣容易。
+
+###### Golang
+
+```go
+import "github.com/TeaMeow/Maxim"
+
+func main() {
+	engine := maxim.Default()
+	engine.On("Ping", func(c *maxim.Context) {
+		c.Respond(maxim.StatusOK, maxim.H{
+			"message": "pong!",
+		})
+	})
+	engine.Run(":5000")
+}
+```
+
+###### JavaScript
+
+```javascript
+import "maxim"
+
+var conn   = new Maxim("ws://localhost:5000/"),
+    result = await conn.execute("Ping")
+
+console.log(result.data().pong) // 輸出：pong!
+```
+
+## 後端
+
+### 監聽事件
+
+透過 `On` 監聽事件，這是最基本的用法，就像是在網站框架中定義一個 API 進入點一樣，這個範例定義了一個 `Ping` 函式可供客戶端呼叫。
+
+```go
+engine.On("Ping", func(c *maxim.Context) {
+	// ...
+})
+```
+
+### 回應
+
+在 Maxim 裏，回應的方式和傳統的 RESTful API 一樣都帶有一個狀態碼，但這個狀態碼可以是自訂的，或者你也能使用 Maxim 中現有的狀態碼。最基本的回應方式就是透過 `maxim.H`（實際上就是 `map[string]interface{}`）。
+
+```go
+engine.On("Ping", func(c *maxim.Context) {
+	c.Respond(maxim.StatusOK, maxim.H{
+		"message": "pong!",
+	})
+})
+// 回傳：{"message": "pong!"}
+```
+
+#### 回應模型
+
+回應不一定要是一個 `map`，例如建構體也是可行的。你亦能在建構體中透過標籤指定回傳的鍵名。
+
+```go
+engine.On("GetBook", func(c *maxim.Context) {
+	var book struct {
+		Title       string `json:"t"`
+		Description string `json:"d"`
+	}
+	book.Title = "世界上最好的語言：PHP"
+	book.Description = "這本書將帶領你理解為什麼 PHP 能夠領先任何程式語言十多年。"
+
+	c.Respond(maxim.StatusOK, book)
+	// 輸出：{"t": "世界上最...", "d": "這本書將帶領你理..."}
+})
+```
+
+#### 回應其他人
+
+當在建立一個類似聊天室的服務時，我們不希望接收到自己剛才發送的訊息，但卻希望其他所有人接收到這則訊息，此時可以透過 `RespondOthers` 來將訊息傳遞給自己以外的所有人（這可能不適用於有負載平衡的情況）。
+
+```go
+engine.On("SendMessage", func(c *maxim.Context) {
+	var m Message
+	if err := c.Bind(&m); err != nil {
+		c.RespondOthers(maxim.StatusOK, maxim.H{
+			"message": m.Content,
+		})
+	}
+})
+```
+
+#### 主動式回應
+
+你可以主動式的直接向所有客戶端進行回應廣播，而不需要等到客戶端發送請求。這很適合用於即時聊天或者線上遊戲。
+
+```go
+engine.Respond(maxim.H{
+	"message": "Hello, world!",
+})
+```
+
+### 綁定資料
+
+當接收到來自客戶端的資料時，可以透過 `Bind` 將其資料直接映射在本地端的特定建構體或 `map`。
+
+```go
+engine.On("Login", func(c *maxim.Context) {
+	var u User
+	if err := c.Bind(&u); err == nil {
+		c.Respond(maxim.StatusOK, maxim.H{
+			"message":  "已接收到使用者資料！",
+			"username": u.Username,
+			"password": u.Password,
+		})
+	}
+})
+```
+
+### 呼叫
+
+由於 Maxim 是雙向的，這意味著伺服端也能夠透過 `Execute` 函式呼叫客戶端的方式，但這可能會令程式結構變的複雜。
+
+```go
+// 建立一個檢查更新的函式。
+engine.On("CheckUpdate", func(c *maxim.Context) {
+	// 如果有更新的話⋯⋯。
+	if hasUpdate {
+		data := maxim.H{"version": "1.0.0-beta1"}
+		// 就呼叫客戶端的 Update 函式來進行更新。
+		c.Execute("Update", data, func(c *maxim.Context) {
+			// ...處理執行客戶端 Update 所回傳的資訊...
+		})
+	}
+})
+```
+
+#### 呼叫其他人
+
+和「回應其他人」相同的功能，你可以呼叫除了這個客戶端以外的其他人函式。
+
+```go
+engine.On("SetName", func(c *maxim.Context) {
+	c.ExecuteOthers("Update", data, func(c *maxim.Context) {
+		// ...
+	})
+})
+```
+
+#### 主動式呼叫
+
+你也能主動直接向所有客戶端呼叫指定函式，但這是向所有客戶端進行廣播，因此無法取得回傳的資訊。
+
+```go
+engine.Execute("SetColor", maxim.H{
+	"color": "#00ADEA",
+})
+```
+
+### 狀態碼
+
+| 狀態碼              | 說明                                                                      |
+|---------------------|--------------------------------------------------------------------------|
+| StatusOK            | 任何事情都很 Okay，如果刪除了早就不存在的事物，也可以算是 OK。                    |
+| StatusError         | 內部錯誤發生，可能是非預期的錯誤。                                             |
+| StatusProcessing    | 已成功傳送請求，但現在還不會完成，將會在背景中進行。                              |
+| StatusFull          | 請求因為已滿而被拒絕，例如好友清單已滿無法新增、聊天室人數已滿無法加入。             |
+| StatusExists        | 已經有相同的事物存在而被拒絕。                                                |
+| StatusInvalid       | 格式無效而被拒絕，通常是不符合表單驗證要求。                                    |
+| StatusNotFound      | 找不到指定資源。                                                           |
+| StatusNotAuthorized | 請求被拒。沒有驗證的身份，需要登入以進行驗證。                                  |
+| StatusNoPermission  | 以驗證身份，但沒有權限提出此請求因而被拒。                                     |
+| StatusNoChanges     | 這項請求沒有改變什麼事情，通常來說可以用 StatusOK 即可。                        |
+| StatusUnimplemented | 此功能尚未實作完成，如果呼叫了一個不存在的函式即會回傳此狀態。                     |

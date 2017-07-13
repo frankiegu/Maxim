@@ -164,7 +164,9 @@ Maxim 會自動在上傳時將檔案切分成塊（基於客戶端區塊大小�
 自從你不需要手動處理區塊分割的問題，你的檔案上傳處理也變得異常簡單。透過 Maxim 內建的區塊處理器 `maxim.Chunker` 會將區塊暫時擺放於 `/tmp` 中，以此就能直接實作一個檔案處理函式。你也能自行建立一個區塊處理器來將區塊上傳至 Amazon S3 或者以其他方式處理。
 
 ```go
-e.OnFile("Avatar", maxim.Chunker, func(c *maxim.Context) {
+chunker := maxim.NewChunker()
+
+e.OnFile("Avatar", chunker, func(c *maxim.Context) {
     c.Respond(maxim.StatusOK, maxim.H{
         "filename": c.File.Name,
     })
