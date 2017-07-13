@@ -66,7 +66,7 @@ $ go get github.com/TeaMeow/Maxim
 
 | 名詞    | 簡稱  | 說明                                     | 範例                       | 傳統範例              |
 |--------|------|------------------------------------------|---------------------------|----------------------|
-| Browse | 瀏覽  | 瀏覽資源的清單，例如影片列表、好友列表。        | BrowseUsers、BrowseVideos | GET /comments        |
+| Browse | 瀏覽  | 瀏覽資源的清單，例如影片列表、好友列表。        | BrowseUsers               | GET /users           |
 | Get    | 取得  | 取得單個資源。                             | GetComment                | GET /comment/1       |
 | Update | 更新  | 更新、編輯單個或多個資源。                   | UpdatePost                | PUT /post/1          |
 | Create | 建立  | 新增、建立單個或多個資源。                   | CreatePhotos              | POST /photos         |
