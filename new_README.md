@@ -10,7 +10,7 @@
 * 以 MessagePack 編碼資料與達到更輕量的傳遞。
 * 可雙向溝通與廣播以解決傳統僅單向溝通的障礙。
 * 可供暫停式的全自動檔案分塊上傳方式。
-* 支援中繼軟體（Middleware）。
+* 支援中介軟體（Middleware）。
 * 可使用 ES7 Async/Await 處理前端的呼叫。
 * 友善的錯誤處理環境。
 
@@ -194,18 +194,75 @@ engine.Execute("SetColor", maxim.H{
 })
 ```
 
+### 中介軟體
+
+中介軟體讓你在執行 API 進入點函式之前安插一些中介函式，例如紀錄、監聽、身份驗證⋯等，如此一來你就能夠在使用者身份不對時，直接結束請求。透過 `Use` 可以安插全域中介軟體。
+
+```go
+engine.Use(maxim.Logger())
+engine.Use(myMiddleware())
+```
+
+#### 單函式中介
+
+有時候你只需要讓指定函式有中介軟體，而非所有函式，這麼做就行了。
+
+```go
+engine.On("Login", myMiddleware(), func(c *maxim.Context) {
+	// ...
+})
+```
+
+#### 自造中介軟體
+
+除了使用 Maxim 內建的中介軟體外，你當然也能自己寫一個，不然要這功能幹嘛？對吧。
+
+```go
+// myMiddleware 是一個自己撰寫的中介軟體，會在接收的資料中安插一個新的 `Foo` 資料。
+func myMiddleware() maxim.HandlerFunc {
+	return func(c *maxim.Context) {
+		// 在資料中安插自訂資料。
+		c.Set("Foo", "Bar")
+		// 呼叫下一個中介軟體，或者繼續。
+		c.Next()
+		// 之後還可以繼續執行程式。
+		fmt.Println("myMiddleware 已執行！")
+	}
+}
+
+engine.On("Login", myMiddleware(), func(c *maxim.Context) {
+	fmt.Println(c.Get("Foo").(string))
+})
+// 輸出：Bar
+//      myMiddleware 已執行！
+```
+
+#### 中介軟體裡的 Goroutine
+
+如果你的中介軟體裡會用到 Goroutine，那麼你就不應該把原本的 `maxim.Context` 傳入 Goroutine 中。你必須透過 `Copy` 函式複製一份唯讀的 `Context` 避免資料起衝突。
+
+```go
+engine.On("Login", func(c *maxim.Context) {
+	go myGoroutineFunc(c.Copy())
+}, func(c *maxim.Context) {
+	// ...
+})
+```
+
 ### 狀態碼
+
+在 Maxim 中有內建這些狀態碼，優於傳統 RESTful API 之處在於你可以自訂你自己的狀態碼。
 
 | 狀態碼              | 說明                                                                      |
 |---------------------|--------------------------------------------------------------------------|
 | StatusOK            | 任何事情都很 Okay，如果刪除了早就不存在的事物，也可以算是 OK。                    |
 | StatusError         | 內部錯誤發生，可能是非預期的錯誤。                                             |
 | StatusProcessing    | 已成功傳送請求，但現在還不會完成，將會在背景中進行。                              |
-| StatusFull          | 請求因為已滿而被拒絕，例如好友清單已滿無法新增、聊天室人數已滿無法加入。             |
+| StatusFull          | 請求因為已滿而被拒絕，例如：好友清單已滿無法新增、聊天室人數已滿無法加入。            |
 | StatusExists        | 已經有相同的事物存在而被拒絕。                                                |
 | StatusInvalid       | 格式無效而被拒絕，通常是不符合表單驗證要求。                                    |
 | StatusNotFound      | 找不到指定資源。                                                           |
 | StatusNotAuthorized | 請求被拒。沒有驗證的身份，需要登入以進行驗證。                                  |
-| StatusNoPermission  | 以驗證身份，但沒有權限提出此請求因而被拒。                                     |
+| StatusNoPermission  | 已驗證身份，但沒有權限提出此請求因而被拒。                                     |
 | StatusNoChanges     | 這項請求沒有改變什麼事情，通常來說可以用 StatusOK 即可。                        |
 | StatusUnimplemented | 此功能尚未實作完成，如果呼叫了一個不存在的函式即會回傳此狀態。                     |
