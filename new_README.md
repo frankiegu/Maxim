@@ -381,30 +381,6 @@ conn.execute("CreateUser", {
 ```
 
 ```javascript
-conn.execute({
-	function: "CreateUser",
-	data    : {},
-	metadata: {},
-})
-
-conn.execute({
-	function: "BrowseUsers",
-	data    : {
-		page:
-	},
-	metadata : {},
-	structure: `
-		username
-		password
-		friends {
-			username
-			avatar
-		}
-	`
-})
-```
-
-```javascript
 conn.execute("BrowseUsers", {
 	count: 30,
 	page : 2,
