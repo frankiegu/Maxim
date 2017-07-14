@@ -72,6 +72,11 @@ Maxim 會自動在上傳時將檔案切分成塊（基於客戶端區塊大小�
 	* [中繼資料](#中繼資料)
 * [前端](#前端)
 	* [開啟連線](#開啟連線)
+	* [中介軟體](#中介軟體)
+		* [單函式中介](#單函式中介)
+		* [自造中介軟體](#自造中介軟體)
+	* [檔案處理](#檔案處理)
+	* [中繼資料](#中繼資料)
 * [狀態碼](#狀態碼)
 
 # 安裝方式
@@ -373,6 +378,7 @@ var conn = new Maxim("ws://localhost:5000/")
 // })
 ```
 
+
 ```javascript
 conn.execute("CreateUser", {
 	username: "YamiOdymel",
@@ -380,14 +386,7 @@ conn.execute("CreateUser", {
 })
 ```
 
-```javascript
-conn.execute("BrowseUsers", {
-	count: 30,
-	page : 2,
-}, {
-	token: "K2nE3lIgCeLod9f21"
-})
-```
+
 
 ```javascript
 conn.execute("BrowseUsers").then((result) => {
@@ -405,6 +404,8 @@ var browseUsers = () => {
 async browseUsers()
 ```
 
+### 事件處理
+
 ```javascript
 conn.addListener("message", () => {})
 conn.addListener("message", myListener, "myListener")
@@ -413,15 +414,22 @@ conn.removeListener("message")
 conn.removeListener("message", "myListener")
 ```
 
+#### 訂閱事件執行
+
 ```javascript
 conn.on("SetColor", (context) => {
 	document.body.style.backgroundColor = context.data().color
 })
 ```
 
+### 中介軟體
+
+
 ```javascript
 conn.use(myMiddleware())
 ```
+
+#### 自造中介軟體
 
 ```javascript
 function myMiddleware() {
@@ -429,6 +437,24 @@ function myMiddleware() {
 		context.next()
 	}
 }
+```
+
+### 檔案處理
+
+### 中繼資料
+
+```javascript
+conn.execute("BrowseUsers", {
+	count: 30,
+	page : 2,
+}, {
+	token: "K2nE3lIgCeLod9f21"
+})
+```
+
+```javascript
+var result = await conn.execute("BrowseUsers")
+result.metadata().foo
 ```
 
 ## 狀態碼
