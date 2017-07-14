@@ -229,6 +229,7 @@ engine.On("CheckUpdate", func(c *maxim.Context) {
 		c.Execute("Update", data, func(c *maxim.Context) {
 			// ...處理執行客戶端 Update 所回傳的資訊...
 		})
+		// 這下面會直接被執行。
 	}
 })
 ```
@@ -347,12 +348,111 @@ engine.On("CreatePost", chunker, func(c *maxim.Context) {
 })
 ```
 
+如果你要呼叫客戶端的函式，而要修改發送的中繼資料，則透過 `SetMetadata`。
+
+```go
+engine.On("CheckVersion", chunker, func(c *maxim.Context) {
+	c.SetMetadata(map[string]interface{}{
+		"token": "JeNIKr3XAoeKetUbeCD",
+	}).Execute("Update")
+})
+```
+
 ## 前端
 
 ### 開啟連線
 
 ```javascript
+import "maxim"
 
+var conn = new Maxim("ws://localhost:5000/")
+
+// 或者帶有額外設置來建立一個 Maxim。
+// var conn = new Maxim("ws://localhost:5000/", {
+// 	reconnect: true
+// })
+```
+
+```javascript
+conn.execute("CreateUser", {
+	username: "YamiOdymel",
+	password: "testtest"
+})
+```
+
+```javascript
+conn.execute({
+	function: "CreateUser",
+	data    : {},
+	metadata: {},
+})
+
+conn.execute({
+	function: "BrowseUsers",
+	data    : {
+		page:
+	},
+	metadata : {},
+	structure: `
+		username
+		password
+		friends {
+			username
+			avatar
+		}
+	`
+})
+```
+
+```javascript
+conn.execute("BrowseUsers", {
+	count: 30,
+	page : 2,
+}, {
+	token: "K2nE3lIgCeLod9f21"
+})
+```
+
+```javascript
+conn.execute("BrowseUsers").then((result) => {
+	// ...
+}, (error) => {
+	// ...
+})
+```
+
+```javascript
+var browseUsers = () => {
+	var result = await conn.execute("BrowseUsers")
+	// ...
+}
+async browseUsers()
+```
+
+```javascript
+conn.addListener("message", () => {})
+conn.addListener("message", myListener, "myListener")
+
+conn.removeListener("message")
+conn.removeListener("message", "myListener")
+```
+
+```javascript
+conn.on("SetColor", (context) => {
+	document.body.style.backgroundColor = context.data().color
+})
+```
+
+```javascript
+conn.use(myMiddleware())
+```
+
+```javascript
+function myMiddleware() {
+	return (context) => {
+		context.next()
+	}
+}
 ```
 
 ## 狀態碼
