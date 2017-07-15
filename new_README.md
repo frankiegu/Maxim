@@ -378,6 +378,7 @@ var conn = new Maxim("ws://localhost:5000/")
 // })
 ```
 
+### 呼叫
 
 ```javascript
 conn.execute("CreateUser", {
@@ -386,7 +387,7 @@ conn.execute("CreateUser", {
 })
 ```
 
-
+#### 使用 Promise
 
 ```javascript
 conn.execute("BrowseUsers").then((result) => {
@@ -395,6 +396,8 @@ conn.execute("BrowseUsers").then((result) => {
 	// ...
 })
 ```
+
+#### 使用 Async/Await
 
 ```javascript
 var browseUsers = () => {
@@ -414,7 +417,7 @@ conn.removeListener("message")
 conn.removeListener("message", "myListener")
 ```
 
-#### 訂閱事件執行
+#### 訂閱事件
 
 ```javascript
 conn.on("SetColor", (context) => {
@@ -423,7 +426,6 @@ conn.on("SetColor", (context) => {
 ```
 
 ### 中介軟體
-
 
 ```javascript
 conn.use(myMiddleware())
@@ -440,6 +442,12 @@ function myMiddleware() {
 ```
 
 ### 檔案處理
+
+```javascript
+conn.upload("Picture", () => {
+	return new FileReader()
+})
+```
 
 ### 中繼資料
 
