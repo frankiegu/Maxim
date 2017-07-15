@@ -25,6 +25,7 @@ const (
 	StatusFileRetry        = "MaximFileRetry"
 	StatusFileAbort        = "MaximFileAbort"
 	StatusFileEmpty        = "MaximFileEmpty"
+	StatusFileIncomplete   = "MaximFileIncomplete"
 	StatusFileTimeout      = "MaximFileTimeout"
 	StatusFileNoPermission = "MaximFileNoPermission"
 
