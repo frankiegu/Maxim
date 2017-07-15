@@ -60,7 +60,7 @@ Maxim 是基於 [`net/http`](https://golang.org/pkg/net/http/) 和 [`olahol/melo
 	* [回應](#回應)
 		* [回應模型](#回應模型)
 		* [回應其他人](#回應其他人)
-		* [主動式回應](#主動式回應)
+		* [主動式廣播](#主動式廣播)
 	* [綁定資料](#綁定資料)
 	* [呼叫](#呼叫)
 		* [呼叫其他人](#呼叫其他人)
@@ -203,12 +203,12 @@ engine.On("SendMessage", func(c *maxim.Context) {
 })
 ```
 
-#### 主動式回應
+#### 主動式廣播
 
 你可以主動式的直接向所有客戶端進行回應廣播，而不需要等到客戶端發送請求。這很適合用於即時聊天或者線上遊戲。
 
 ```go
-engine.Respond(maxim.H{
+engine.Boardcast(maxim.H{
 	"message": "Hello, world!",
 })
 ```
@@ -430,6 +430,10 @@ conn.removeListener("message", "myListener")
 #### 訂閱事件
 
 ```javascript
+conn.on("*", (context) => {
+	// ...
+})
+
 conn.on("SetColor", (context) => {
 	document.body.style.backgroundColor = context.data().color
 })
