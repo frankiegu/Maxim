@@ -1,0 +1,13 @@
+<div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/msgpack-lite/0.1.26/msgpack.min.js"></script>
+<script src="../../maxim.js"></script>
+<script>
+    var conn = new Maxim("ws://localhost:5000")
+    var sayHello = () => {
+        var result = await conn.execute("Hello", {
+            message: "hello, world!"
+        })
+        document.querySelector("div").innerText = "接收到來自伺服端的訊息：" + result.data().message
+    }
+</script>

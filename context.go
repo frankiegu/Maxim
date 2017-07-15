@@ -1,92 +1,161 @@
 package maxim
 
+import "time"
+import "github.com/olahol/melody"
+
 type Context struct {
+	File     File
+	Chunk    Chunk
+	data     string
+	metadata map[string]interface{}
+	store    map[string]interface{}
+	handlers []HandlerFunc
+	index    int8
+	session  *melody.Session
+	melody   *melody.Melody
 }
 
-func (c *Context) Get() {
-
+type File struct {
+	Name      string
+	Size      uint
+	Extension string
+	Path      string
+	Duration  time.Duration
 }
 
-func (c *Context) Get() {
-
+func (c *Context) Get(key string) (value interface{}, exists bool) {
+	value, exists = c.store[key]
+	return
 }
 
-func (c *Context) GetBool() {
-
+func (c *Context) GetBool(key string) (b bool) {
+	if v, ok := c.Get(key); ok && v != nil {
+		b, _ = v.(bool)
+	}
+	return
 }
 
-func (c *Context) GetDuration() {
-
+func (c *Context) GetDuration(key string) (d time.Duration) {
+	if v, ok := c.Get(key); ok && v != nil {
+		d, _ = v.(time.Duration)
+	}
+	return
 }
 
-func (c *Context) GetFloat64() {
-
+func (c *Context) GetFloat64(key string) (f64 float64) {
+	if v, ok := c.Get(key); ok && v != nil {
+		f64, _ = v.(float64)
+	}
+	return
 }
 
-func (c *Context) GetInt() {
-
+func (c *Context) GetInt(key string) (i int) {
+	if v, ok := c.Get(key); ok && v != nil {
+		i, _ = v.(int)
+	}
+	return
 }
 
-func (c *Context) GetInt64() {
-
+func (c *Context) GetInt64(key string) (i64 int64) {
+	if v, ok := c.Get(key); ok && v != nil {
+		i64, _ = v.(int64)
+	}
+	return
 }
 
-func (c *Context) GetString() {
-
+func (c *Context) GetString(key string) (s string) {
+	if v, ok := c.Get(key); ok && v != nil {
+		s, _ = v.(string)
+	}
+	return
 }
 
-func (c *Context) GetStringMap() {
-
+func (c *Context) GetStringMap(key string) (sm map[string]interface{}) {
+	if v, ok := c.Get(key); ok && v != nil {
+		sm, _ = v.(map[string]interface{})
+	}
+	return
 }
 
-func (c *Context) GetStringMapString() {
-
+func (c *Context) GetStringMapString(key string) (sms map[string]string) {
+	if v, ok := c.Get(key); ok && v != nil {
+		sms, _ = v.(map[string]string)
+	}
+	return
 }
 
-func (c *Context) GetStringSlice() {
-
+func (c *Context) GetStringSlice(key string) (ss []string) {
+	if v, ok := c.Get(key); ok && v != nil {
+		ss, _ = v.([]string)
+	}
+	return
 }
 
-func (c *Context) GetTime() {
-
+func (c *Context) GetTime(key string) (t time.Time) {
+	if v, ok := c.Get(key); ok && v != nil {
+		t, _ = v.(time.Time)
+	}
+	return
 }
 
-func (c *Context) Set() {
-
+func (c *Context) Set(key string, value interface{}) {
+	if c.store == nil {
+		c.store = make(map[string]interface{})
+	}
+	c.store[key] = value
 }
 
-func (c *Context) Metadata() {
-
+func (c *Context) Metadata() map[string]interface{} {
+	if c.metadata == nil {
+		c.metadata = make(map[string]interface{})
+	}
+	return c.metadata
 }
 
-func (c *Context) SetMetadata() {
-
+func (c *Context) SetMetadata(key string, value interface{}) {
+	if c.metadata == nil {
+		c.metadata = make(map[string]interface{})
+	}
+	c.metadata[key] = value
 }
 
 func (c *Context) Next() {
-
+	c.index++
+	s := int8(len(c.handlers))
+	for ; c.index < s; c.index++ {
+		c.handlers[c.index](c)
+	}
 }
 
-func (c *Context) Bind() {
-
+func (c *Context) Bind(destination interface{}) error {
+	return nil
 }
 
-func (c *Context) Copy() {
-
+func (c *Context) Copy() *Context {
+	ctx := *c
+	return &ctx
 }
 
-func (c *Context) Respond() {
-
+func (c *Context) RespondStatus(status string) error {
+	return nil
 }
 
-func (c *Context) RespondOthers() {
-
+func (c *Context) RespondError(status string, errData interface{}) error {
+	return nil
 }
 
-func (c *Context) Execute() {
-
+func (c *Context) Respond(status string, data interface{}) error {
+	return nil
 }
 
-func (c *Context) ExecuteOthers() {
+func (c *Context) RespondOthers() error {
+	return nil
+}
 
+func (c *Context) Execute() error {
+	return nil
+}
+
+func (c *Context) ExecuteOthers() error {
+	return nil
 }

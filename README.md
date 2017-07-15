@@ -328,11 +328,11 @@ engine.On("Login", func(c *maxim.Context) {
 
 ### 檔案處理
 
-透過 `OnFile` 建立一個基於檔案處理的事件監聽器，和基本的 `On` 函式類似，但第二個參數是區塊處理函式。
+透過 `OnFile` 建立一個基於檔案處理的事件監聽器，和基本的 `On` 函式類似，但中間需安插一個區塊處理中介軟體用以處理從客戶端所接收的區塊。
 
 ```go
-chunker := maxim.NewChunker()
-engine.OnFile("Video", chunker, func(c *maxim.Context) {
+chunkMiddleware := maxim.ChunkHandler()
+engine.OnFile("Video", chunkMiddleware, func(c *maxim.Context) {
 	// 當上傳完畢後輸出檔案名稱。
 	fmt.Println(c.File.Name)
 })
@@ -340,14 +340,14 @@ engine.OnFile("Video", chunker, func(c *maxim.Context) {
 
 #### 預設區塊處理函式
 
-你不需要手動處理區塊分割的問題，因此你的檔案上傳處理也變得異常簡單。透過 Maxim 中的 `NewChunker` 新建一個內建的區塊處理器 `maxim.Chunker`，這個處理器會將區塊暫時擺放於 `/tmp` 中，並且最終組合檔案到指定位置。以此就能直接實作一個檔案處理函式。你也能自行建立一個區塊處理器來將區塊上傳至 Amazon S3 或者以其他方式處理。
+你不需要手動處理區塊分割的問題，因此你的檔案上傳處理也變得異常簡單。透過 Maxim 中的 `ChunkHandler` 新建一個內建的區塊處理器。這個處理器會將區塊暫時擺放於 `/tmp` 中，並且最終組合檔案到指定位置。以此就能直接實作一個檔案處理函式。你也能自行建立一個區塊處理器來將區塊上傳至 Amazon S3 或者以其他方式處理。
 
 ```go
-chunker := maxim.NewChunker(maxim.ChunkerOption{
+chunkMiddleware := maxim.ChunkHandler(maxim.ChunkHandlerOption{
 	Path:    "/uploads",
 	MaxSize: 5000000,
 })
-engine.OnFile("Photo", chunker, func(c *maxim.Context) {
+engine.OnFile("Photo", chunkMiddleware, func(c *maxim.Context) {
 	// ...
 })
 ```
@@ -357,7 +357,7 @@ engine.OnFile("Photo", chunker, func(c *maxim.Context) {
 透過 `Metadata` 函式從接收到的資訊中取得客戶端所傳遞的中繼資料。
 
 ```go
-engine.On("CreatePost", chunker, func(c *maxim.Context) {
+engine.On("CreatePost", func(c *maxim.Context) {
 	metadata := c.Metadata()
 	fmt.Println(metadata["token"].(token))
 })
@@ -366,7 +366,7 @@ engine.On("CreatePost", chunker, func(c *maxim.Context) {
 如果你要呼叫客戶端的函式，而要修改發送的中繼資料，則透過 `SetMetadata`。
 
 ```go
-engine.On("CheckVersion", chunker, func(c *maxim.Context) {
+engine.On("CheckVersion", func(c *maxim.Context) {
 	c.SetMetadata(map[string]interface{}{
 		"token": "JeNIKr3XAoeKetUbeCD",
 	}).Execute("Update")
