@@ -72,6 +72,11 @@ Maxim 會自動在上傳時將檔案切分成塊（基於客戶端區塊大小�
 	* [中繼資料](#中繼資料)
 * [前端](#前端)
 	* [開啟連線](#開啟連線)
+	* [呼叫與資料接收](#呼叫與資料接收)
+		* [使用 Promise](#)
+		* [使用 Async/Await](#)
+	* [事件處理](#事件處理)
+		* [訂閱事件](#訂閱事件)
 	* [中介軟體](#中介軟體)
 		* [單函式中介](#單函式中介)
 		* [自造中介軟體](#自造中介軟體)
@@ -378,7 +383,7 @@ var conn = new Maxim("ws://localhost:5000/")
 // })
 ```
 
-### 呼叫
+### 呼叫與資料接收
 
 ```javascript
 conn.execute("CreateUser", {
@@ -431,14 +436,33 @@ conn.on("SetColor", (context) => {
 conn.use(myMiddleware())
 ```
 
+#### 單函式中介
+
+```javascript
+conn.on("SetColor", myMiddleware(), (context) => {
+	document.body.style.backgroundColor = context.data().color
+})
+```
+
 #### 自造中介軟體
 
 ```javascript
 function myMiddleware() {
 	return (context) => {
+		// 在資料中安插自訂資料。
+		context.set("foo", "bar")
+		// 呼叫下一個中介軟體，或者繼續。
 		context.next()
+		// 之後還可以繼續執行程式。
+		console.log("myMiddleware 已執行！")
 	}
 }
+
+conn.on("SetColor", myMiddleware(), (context) => {
+	console.log(context.get("foo"))
+})
+// 輸出：bar
+//      myMiddleware 已執行！
 ```
 
 ### 檔案處理
