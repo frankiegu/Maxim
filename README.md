@@ -84,6 +84,9 @@ Maxim 是基於 [`net/http`](https://golang.org/pkg/net/http/) 和 [`olahol/melo
 		* [自造中介軟體](#自造中介軟體)
 	* [檔案處理](#檔案處理)
 	* [中繼資料](#中繼資料)
+* [結構](#結構)
+    * [檔案上傳](#檔案上傳)
+    * [伺服端回應](#伺服端回應)
 * [狀態碼](#狀態碼)
 
 # 安裝方式
@@ -490,6 +493,50 @@ conn.execute("BrowseUsers", {
 ```javascript
 var result = await conn.execute("BrowseUsers")
 result.metadata().foo
+```
+
+## 結構
+
+這是 Maxim 傳遞資料時的結構，命名方式參照了 [JSON Web Token](https://jwt.io/)，一般來說你不會察覺到他們的存在，因為 Maxim 已經幫你處理好了 ;)。下面這是從客戶端傳遞至伺服端的內容。
+
+```javascript
+{
+    tid: int,     本次工作編號。
+    fun: string,  欲呼叫的遠端函式名稱。
+    met: ?object, 中繼資料內容。
+    dat: ?object  主要資料內容。
+}
+```
+
+### 檔案上傳
+
+從客戶端上傳檔案時會自動將檔案區分成區塊並轉換成二進制格式。
+
+```javascript
+{
+    tid: int,             本次工作編號。
+    met: ?object,         中繼資料內容。
+    fil: {                檔案內容。
+        key: string,      檔案唯一金鑰。
+        par: integer,     目前上傳區塊順序。
+        tol: integer,     檔案總共的區塊數。
+        bin: binary       此區塊的檔案二進制內容。
+    }
+}
+```
+
+### 伺服端回應
+
+伺服端會回應相對應的工作編號讓客戶端能夠知道這個回應與哪個請求相符。
+
+```javascript
+{
+    tid: int,     本次工作編號。
+    met: ?object, 中繼資料內容。
+    cod: string,  回傳狀態碼。
+    dat: ?object, 主要資料內容。
+    err: ?object  錯誤主要資料內容，若無此物件則為成功無錯誤。
+}
 ```
 
 ## 狀態碼
