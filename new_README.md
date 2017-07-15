@@ -48,6 +48,8 @@ Maxim 會自動在上傳時將檔案切分成塊（基於客戶端區塊大小�
 
 # 效能如何？
 
+Maxim 是基於 [`net/http`](https://golang.org/pkg/net/http/) 和 [`olahol/melody`](https://github.com/olahol/melody) 的 WebSocket 框架作為基礎，並由 [`vmihailenco/msgpack`](https://github.com/vmihailenco/msgpack) 作為傳遞訊息的基本格式。
+
 # 索引
 
 * [安裝方式](#安裝方式)
