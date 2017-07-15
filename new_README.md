@@ -96,7 +96,7 @@ $ go get github.com/TeaMeow/Maxim
 
 # 命名方式
 
-在 Maxim 中你可以依照你的喜好替函式命名，但如果你覺得不曉得從何起頭，這裡提供了一個比起傳統 RESTful API 還要更有彈性的命名規範。傳統的 API 中我們有 `GET`、`POST`、`PATCH`⋯等，但多數情況下那並不是很適用，例如你想要替某項東西按讚，變成了 `POST Like` 並不是很直覺。
+在 Maxim 中你可以依照你的喜好替函式命名，但如果你不曉得從何起頭，這裡提供了一個比起傳統 RESTful API 還要更有彈性的命名規範。傳統的 API 中我們有 `GET`、`POST`、`PATCH`⋯等，但多數情況下那並不是很適用，例如你想要替某項東西按讚，變成了 `POST Like` 並不是很直覺。
 
 比起使用 CRUD（Create、Read、Update、Delete），Maxim 更推薦使用 BGUCDS，他們的含義如下。
 
@@ -471,7 +471,8 @@ conn.on("SetColor", myMiddleware(), (context) => {
 
 ```javascript
 conn.upload("Picture", () => {
-	return new FileReader()
+	var reader = new FileReader()
+    return reader.readAsByteArray(file)
 })
 ```
 
