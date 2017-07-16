@@ -19,7 +19,6 @@ type Chunk struct {
 
 type ChunkHandlerOption struct {
 	TmpPath string
-	Timeout uint
 	MaxSize int64
 	OnError func(error, *Context)
 }
@@ -33,20 +32,19 @@ func fileExists(path string) bool {
 	return err != nil
 }
 
-func ChunkHandler(option ...ChunkHandlerOption) {
+func ChunkHandler(option ...ChunkHandlerOption) HandlerFunc {
 	// Create a default option if the user didn't pass a chunk handler option.
 	var o ChunkHandlerOption
 	if len(option) == 0 {
 		o = ChunkHandlerOption{
 			TmpPath: "/tmp",
-			Timeout: 3000,     // 5 minutes
 			MaxSize: 40000000, // 40 MB
 		}
 	} else {
 		o = option[0]
 	}
 
-	//
+	// The real chunk handler.
 	return func(c *Context) {
 		// Make sure the key is a valid UUID format.
 		isUUID := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`).MatchString
@@ -55,15 +53,13 @@ func ChunkHandler(option ...ChunkHandlerOption) {
 			c.RespondStatus(StatusFileEmpty)
 			return
 		}
-
 		// Make sure the directories is writable.
 		if unix.Access(o.TmpPath, unix.W_OK) != nil {
 			c.RespondStatus(StatusFileNoPermission)
 			return
 		}
-
+		// Create the filename and the path for the file.
 		filename := fmt.Sprintf("%s/%s.%s", o.TmpPath, c.Chunk.Key, c.Chunk.Extension)
-
 		// Create the file if it's the first chunk.
 		if c.Chunk.Part == 1 {
 			f, err := os.Create(filename)
@@ -72,14 +68,6 @@ func ChunkHandler(option ...ChunkHandlerOption) {
 			}
 			defer f.Close()
 		}
-
-		// Get the information of the file.
-		info, err := os.Stat(filename)
-		if err != nil {
-
-		}
-
-		// Abort and delete the file if it's not done and timeouted.
 
 		// Open the file.
 		f, err := os.Open(filename)
@@ -95,8 +83,15 @@ func ChunkHandler(option ...ChunkHandlerOption) {
 		}
 		f.Sync()
 
+		// Get the information of the file.
+		info, err := os.Stat(filename)
+		if err != nil {
+
+		}
+		size := info.Size()
+
 		// Calculate the size of the file, abort and delete the file if it's too large.
-		if info.Size() > o.MaxSize {
+		if size > o.MaxSize {
 			err := os.Remove(filename)
 			if err != nil {
 
@@ -114,20 +109,12 @@ func ChunkHandler(option ...ChunkHandlerOption) {
 		// We continue to the next handler with the file information
 		// if this is the last chunk and we just nailed it.
 		c.File = File{
-		//Name: c.Chunk.Name,
-		//Size:
-		//Extension: c.Chunk.Extension,
-		//Path: filename,
-		//Duration:
+			Name:      c.Chunk.Name,
+			Size:      size,
+			Extension: c.Chunk.Extension,
+			Path:      filename,
 		}
-
-		// Move the file to the specified directory.
-
-		// Don't move the file if the file directory is the same as the temporary directory.
-
-		// Put the file information to the context.
-
+		// Here we go!
 		c.Next()
-
 	}
 }

@@ -63,6 +63,9 @@ func (h *mainReceiver) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (e *Engine) Run(port string) {
 	// Create the main WebSocket connection by the melody framework.
 	m := melody.New()
+
+	// TIMEOUT MELODY
+
 	// Handle the main path.
 	http.Handle("/", &mainReceiver{melody: m})
 

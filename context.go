@@ -17,10 +17,9 @@ type Context struct {
 
 type File struct {
 	Name      string
-	Size      uint
+	Size      int64
 	Extension string
 	Path      string
-	Duration  time.Duration
 }
 
 func (c *Context) Get(key string) (value interface{}, exists bool) {
