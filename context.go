@@ -1,12 +1,19 @@
 package maxim
 
-import "time"
-import "github.com/olahol/melody"
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/olahol/melody"
+	"github.com/vmihailenco/msgpack"
+)
 
 type Context struct {
 	File     File
 	Chunk    Chunk
 	data     string
+	taskID   uint
+	function string
 	metadata map[string]interface{}
 	store    map[string]interface{}
 	handlers []HandlerFunc
@@ -127,7 +134,10 @@ func (c *Context) Next() {
 }
 
 func (c *Context) Bind(destination interface{}) error {
-	return nil
+	return json.Unmarshal([]byte(c.data), destination)
+}
+
+func (c *Context) Abort() {
 }
 
 func (c *Context) Copy() *Context {
@@ -136,18 +146,97 @@ func (c *Context) Copy() *Context {
 }
 
 func (c *Context) RespondStatus(status string) error {
+	// Build the respond.
+	resp := respond{
+		taskID:   c.taskID,
+		function: c.function,
+		metadata: c.metadata,
+		code:     status,
+	}
+	// Convert the respond struct to the message pack binary.
+	msg, err := msgpack.Marshal(resp)
+	if err != nil {
+		return err
+	}
+	// Wrtie the message pack to the specified websocket session.
+	c.session.Write(msg)
+
 	return nil
 }
 
 func (c *Context) RespondError(status string, errData interface{}) error {
+	// Conver the error data to json.
+	errJSON, err := json.Marshal(errData)
+	if err != nil {
+		return err
+	}
+
+	// Build the respond.
+	resp := respond{
+		taskID:   c.taskID,
+		function: c.function,
+		metadata: c.metadata,
+		code:     status,
+		err:      string(errJSON),
+	}
+	// Convert the respond struct to the message pack binary.
+	msg, err := msgpack.Marshal(resp)
+	if err != nil {
+		return err
+	}
+	// Wrtie the message pack to the specified websocket session.
+	c.session.Write(msg)
+
 	return nil
 }
 
 func (c *Context) Respond(status string, data interface{}) error {
+	// Conver the data to json.
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// Build the respond.
+	resp := respond{
+		taskID:   c.taskID,
+		function: c.function,
+		metadata: c.metadata,
+		code:     status,
+		data:     string(dataJSON),
+	}
+	// Convert the respond struct to the message pack binary.
+	msg, err := msgpack.Marshal(resp)
+	if err != nil {
+		return err
+	}
+	// Wrtie the message pack to the specified websocket session.
+	c.session.Write(msg)
+
 	return nil
 }
 
-func (c *Context) RespondOthers() error {
+func (c *Context) RespondOthers(status string, data interface{}) error {
+	// Conver the data to json.
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// Build the respond.
+	resp := respond{
+		metadata: c.metadata,
+		code:     status,
+		data:     string(dataJSON),
+	}
+	// Convert the respond struct to the message pack binary.
+	msg, err := msgpack.Marshal(resp)
+	if err != nil {
+		return err
+	}
+	// Wrtie the message pack to the specified websocket session.
+	c.melody.BroadcastOthers(msg, c.session)
+
 	return nil
 }
 

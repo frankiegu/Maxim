@@ -23,15 +23,6 @@ type ChunkHandlerOption struct {
 	OnError func(error, *Context)
 }
 
-func generateChunkName(key string, part int8) string {
-	return fmt.Sprintf("maxim_chunk_%s_%d", key, part)
-}
-
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return err != nil
-}
-
 func ChunkHandler(option ...ChunkHandlerOption) HandlerFunc {
 	// Create a default option if the user didn't pass a chunk handler option.
 	var o ChunkHandlerOption
@@ -54,7 +45,8 @@ func ChunkHandler(option ...ChunkHandlerOption) HandlerFunc {
 			return
 		}
 		// Make sure the directories is writable.
-		if unix.Access(o.TmpPath, unix.W_OK) != nil {
+		if err := unix.Access(o.TmpPath, unix.W_OK); err != nil {
+			o.OnError(err, c)
 			c.RespondStatus(StatusFileNoPermission)
 			return
 		}
@@ -64,7 +56,9 @@ func ChunkHandler(option ...ChunkHandlerOption) HandlerFunc {
 		if c.Chunk.Part == 1 {
 			f, err := os.Create(filename)
 			if err != nil {
-				// ...
+				o.OnError(err, c)
+				c.RespondStatus(StatusFileAbort)
+				return
 			}
 			defer f.Close()
 		}
@@ -72,21 +66,26 @@ func ChunkHandler(option ...ChunkHandlerOption) HandlerFunc {
 		// Open the file.
 		f, err := os.Open(filename)
 		if err != nil {
-			// ...
+			o.OnError(err, c)
+			c.RespondStatus(StatusFileAbort)
+			return
 		}
 		defer f.Close()
 		// Write the chunk binary to the file.
 		_, err = f.Write(c.Chunk.Binary)
 		if err != nil {
-			// maxim.StatusFileNoPERMISSION
-			// ...
+			o.OnError(err, c)
+			c.RespondStatus(StatusFileAbort)
+			return
 		}
 		f.Sync()
 
 		// Get the information of the file.
 		info, err := os.Stat(filename)
 		if err != nil {
-
+			o.OnError(err, c)
+			c.RespondStatus(StatusFileAbort)
+			return
 		}
 		size := info.Size()
 
@@ -94,7 +93,9 @@ func ChunkHandler(option ...ChunkHandlerOption) HandlerFunc {
 		if size > o.MaxSize {
 			err := os.Remove(filename)
 			if err != nil {
-
+				o.OnError(err, c)
+				c.RespondStatus(StatusFileAbort)
+				return
 			}
 			c.RespondStatus(StatusFileSize)
 			return

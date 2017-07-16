@@ -20,15 +20,12 @@ const (
 	StatusNoChanges     = "MaximNoChanges"
 	StatusUnimplemented = "MaximUnimplemented"
 
-	StatusFileNext          = "MaximFileNext"
-	StatusFileRetry         = "MaximFileRetry"
-	StatusFileAbort         = "MaximFileAbort"
-	StatusFileEmpty         = "MaximFileEmpty"
-	StatusFileDuplicatedKey = "MaximFileDuplicatedKey"
-	StatusFileSize          = "MaximFileSize"
-	StatusFileIncomplete    = "MaximFileIncomplete"
-	StatusFileTimeout       = "MaximFileTimeout"
-	StatusFileNoPermission  = "MaximFileNoPermission"
+	StatusFileNext         = "MaximFileNext"
+	StatusFileRetry        = "MaximFileRetry"
+	StatusFileAbort        = "MaximFileAbort"
+	StatusFileEmpty        = "MaximFileEmpty"
+	StatusFileSize         = "MaximFileSize"
+	StatusFileNoPermission = "MaximFileNoPermission"
 
 	//ErrChunkRetry = errors.New("Please resend the chunk.")
 	//ErrChunkAbort = errors.New("Abort the entire upload process.")
@@ -44,12 +41,15 @@ func New() *Engine {
 
 func Default() *Engine {
 	var e Engine
+	e.Use(Logger())
+	e.Use(Recovery())
 	return &e
 }
 
 type Engine struct {
-	functions     map[string][]HandlerFunc
-	fileFunctions map[string][]HandlerFunc
+	globalHandlers []HandlerFunc
+	functions      map[string][]HandlerFunc
+	fileFunctions  map[string][]HandlerFunc
 }
 
 type mainReceiver struct {
@@ -100,7 +100,8 @@ func (e *Engine) Run(port string) {
 
 		// Save the handlers to the context so
 		// we could use `Next()` in the context to call the next handler.
-		ctx.handlers = handlers
+		ctx.handlers = e.globalHandlers
+		ctx.handlers = append(ctx.handlers, handlers...)
 		// Call the first handler with the context.
 		handlers[0](&ctx)
 	})

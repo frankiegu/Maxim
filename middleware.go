@@ -1,9 +1,13 @@
 package maxim
 
-func Logger() {
-
+func Logger() HandlerFunc {
+	return func(c *Context) {
+		c.Next()
+	}
 }
 
-func Recovery() {
-
+func Recovery() HandlerFunc {
+	return func(c *Context) {
+		c.Next()
+	}
 }

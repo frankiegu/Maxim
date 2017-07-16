@@ -1,0 +1,13 @@
+<div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/msgpack-lite/0.1.26/msgpack.min.js"></script>
+<script src="../../maxim.js"></script>
+<script>
+    var conn = new Maxim("ws://localhost:5000")
+    var upload = () => {
+        var result = await conn.upload("Photo", () => {
+            return
+        })
+    }
+    async upload()
+</script>
