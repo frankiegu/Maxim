@@ -20,14 +20,15 @@ const (
 	StatusNoChanges     = "MaximNoChanges"
 	StatusUnimplemented = "MaximUnimplemented"
 
-	StatusFileDone         = "MaximFileDone"
-	StatusFileNext         = "MaximFileNext"
-	StatusFileRetry        = "MaximFileRetry"
-	StatusFileAbort        = "MaximFileAbort"
-	StatusFileEmpty        = "MaximFileEmpty"
-	StatusFileIncomplete   = "MaximFileIncomplete"
-	StatusFileTimeout      = "MaximFileTimeout"
-	StatusFileNoPermission = "MaximFileNoPermission"
+	StatusFileNext          = "MaximFileNext"
+	StatusFileRetry         = "MaximFileRetry"
+	StatusFileAbort         = "MaximFileAbort"
+	StatusFileEmpty         = "MaximFileEmpty"
+	StatusFileDuplicatedKey = "MaximFileDuplicatedKey"
+	StatusFileSize          = "MaximFileSize"
+	StatusFileIncomplete    = "MaximFileIncomplete"
+	StatusFileTimeout       = "MaximFileTimeout"
+	StatusFileNoPermission  = "MaximFileNoPermission"
 
 	//ErrChunkRetry = errors.New("Please resend the chunk.")
 	//ErrChunkAbort = errors.New("Abort the entire upload process.")

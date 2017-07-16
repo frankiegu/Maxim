@@ -5,8 +5,6 @@ import (
 	"os"
 	"regexp"
 
-	uuid "github.com/satori/go.uuid"
-
 	"golang.org/x/sys/unix"
 )
 
@@ -14,14 +12,15 @@ type Chunk struct {
 	Binary    []byte
 	Key       string
 	Part      int8
+	Name      string
+	Extension string
 	TotalPart int8
 }
 
 type ChunkHandlerOption struct {
 	TmpPath string
-	Path    string
 	Timeout uint
-	MaxSize uint
+	MaxSize int64
 	OnError func(error, *Context)
 }
 
@@ -40,7 +39,6 @@ func ChunkHandler(option ...ChunkHandlerOption) {
 	if len(option) == 0 {
 		o = ChunkHandlerOption{
 			TmpPath: "/tmp",
-			Path:    "/tmp",
 			Timeout: 3000,     // 5 minutes
 			MaxSize: 40000000, // 40 MB
 		}
@@ -59,36 +57,37 @@ func ChunkHandler(option ...ChunkHandlerOption) {
 		}
 
 		// Make sure the directories is writable.
-		if unix.Access(o.TmpPath, unix.W_OK) != nil || unix.Access(o.Path, unix.W_OK) != nil {
+		if unix.Access(o.TmpPath, unix.W_OK) != nil {
 			c.RespondStatus(StatusFileNoPermission)
 			return
 		}
 
-		// Make sure the previous chunk does exist if the chunk is not the first one.
-		//if c.Chunk.Part != 1 {
-		//	// Create the file name for the previous chunk.
-		//	// Format: maxim_chunk_[KEY]_[CHUNK-NUMBER]
-		//	previousChunk := fmt.Sprintf("maxim_chunk_%s_%d", c.Chunk.Key, c.Chunk.Part-1)
-		//	// Make sure the previous chunk does exist.
-		//	_, err := os.Stat(fmt.Sprintf("%s/%s", o.TmpPath, previousChunk))
-		//	if err != nil && os.IsNotExist(err) {
-		//		c.RespondStatus(StatusFileEmpty)
-		//		return
-		//	}
-		//}
+		filename := fmt.Sprintf("%s/%s.%s", o.TmpPath, c.Chunk.Key, c.Chunk.Extension)
 
-		// Create the file name for the current chunk with the specified format.
-		// Format: maxim_chunk_[KEY]_[CHUNK-NUMBER]
-		chunkName := generateChunkName(c.Chunk.Key, c.Chunk.Part)
+		// Create the file if it's the first chunk.
+		if c.Chunk.Part == 1 {
+			f, err := os.Create(filename)
+			if err != nil {
+				// ...
+			}
+			defer f.Close()
+		}
 
-		// Create an empty file for the new chunk.
-		f, err := os.Create(fmt.Sprintf("%s/%s", o.TmpPath, chunkName))
+		// Get the information of the file.
+		info, err := os.Stat(filename)
+		if err != nil {
+
+		}
+
+		// Abort and delete the file if it's not done and timeouted.
+
+		// Open the file.
+		f, err := os.Open(filename)
 		if err != nil {
 			// ...
 		}
 		defer f.Close()
-
-		// Write the binary to the chunk file.
+		// Write the chunk binary to the file.
 		_, err = f.Write(c.Chunk.Binary)
 		if err != nil {
 			// maxim.StatusFileNoPERMISSION
@@ -96,70 +95,39 @@ func ChunkHandler(option ...ChunkHandlerOption) {
 		}
 		f.Sync()
 
-		// If we've done with the last chunk...
-		if c.Chunk.Part == c.Chunk.TotalPart {
-			var filename string
+		// Calculate the size of the file, abort and delete the file if it's too large.
+		if info.Size() > o.MaxSize {
+			err := os.Remove(filename)
+			if err != nil {
 
-			// Combines the chunks to a single file. (1 ~ TotalPart)
-			for i := int8(1); i <= c.Chunk.TotalPart; i++ {
-				// Create the name for the chunk.
-				chunkName = generateChunkName(c.Chunk.Key, i)
-
-				// Return an error if the chunk doesn't exist.
-				if !fileExists(fmt.Sprintf("%s/%s", o.TmpPath, chunkName)) {
-					c.RespondStatus(StatusFileIncomplete)
-					return
-				}
-
-				// Create the real file so we have the destination for the chunks.
-				if i == 1 {
-					// Generate a UUID for the file name.
-					filename = uuid.NewV4().String()
-					// Just create another UUID if the file name does exist in the destination.
-					for fileExists(fmt.Sprintf("%s/%s", o.Path, filename)) {
-						filename = uuid.NewV4().String()
-					}
-
-					// And we create the file.
-					f, err := os.Create(fmt.Sprintf("%s/%s", o.Path, filename))
-					if err != nil {
-						// ...
-					}
-					defer f.Close()
-				}
-
-				// Now we open the file.
-				f, err := os.Open(fmt.Sprintf("%s/%s", o.Path, filename))
-				if err != nil {
-					// ...
-				}
-				defer f.Close()
-
-				// And we open the chunk.
-				chk, err := os.Open(fmt.Sprintf("%s/%s", o.TmpPath, generateChunkName(c.Chunk.Key, i)))
-				if err != nil {
-					// ...
-				}
-				defer chk.Close()
-
-				// Write the chunk
-				_, err = f.Write(c.Chunk.Binary)
-				if err != nil {
-					// maxim.StatusFileNoPERMISSION
-					// ...
-				}
-				f.Sync()
 			}
-
-			// we continue to the next handler with the file information.
-
-			// Move the file to the specified directory.
-
-			// Don't move the file if the file directory is the same as the temporary directory.
-
-			// Put the file information to the context.
-
-			c.Next()
+			c.RespondStatus(StatusFileSize)
+			return
 		}
+
+		// Get the next chunk if this is not the last chunk.
+		if c.Chunk.Part != c.Chunk.TotalPart {
+			c.RespondStatus(StatusFileNext)
+			return
+		}
+
+		// We continue to the next handler with the file information
+		// if this is the last chunk and we just nailed it.
+		c.File = File{
+		//Name: c.Chunk.Name,
+		//Size:
+		//Extension: c.Chunk.Extension,
+		//Path: filename,
+		//Duration:
+		}
+
+		// Move the file to the specified directory.
+
+		// Don't move the file if the file directory is the same as the temporary directory.
+
+		// Put the file information to the context.
+
+		c.Next()
+
 	}
 }

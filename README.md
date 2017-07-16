@@ -522,6 +522,8 @@ result.metadata().foo
     met: ?object,         中繼資料內容。
     fil: {                檔案內容。
         key: string,      檔案唯一金鑰。
+		nam: string,      檔案原名稱。
+		ext: string,      檔案副檔名。
         par: integer,     目前上傳區塊順序。
         tol: integer,     檔案總共的區塊數。
         bin: binary       此區塊的檔案二進制內容。
